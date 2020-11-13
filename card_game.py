@@ -17,7 +17,7 @@ class Card:
         return self._number + " of " + self._suit + " (" + str(self._value) + ")"
     
     @property
-    def suit():
+    def suit(self):
         """ Gets or sets the suit of the Card """
         return self._suit
         
@@ -29,7 +29,7 @@ class Card:
             logger.error("Tried to set an invalid suit (" + str(suit) + ") for " + repr(self) )
     
     @property
-    def number():
+    def number(self):
         """ Gets or sets the number of the Card """
         return self._number
     
@@ -41,7 +41,7 @@ class Card:
             logger.error("Tried to set an invalid number (" + str(number) + ") for " + repr(self))
     
     @property
-    def value():
+    def value(self):
         """ Gets or sets the value of the Card """
         return self._value
     
@@ -77,7 +77,7 @@ class Deck:
         random.shuffle(self._cards)
     
     @property
-    def cards():
+    def cards(self):
         """ Gets or sets the cards of the Deck """
         return self._cards
         
@@ -143,7 +143,7 @@ class Game:
         self.g_state =    0
         self.g_pool =     0
         self.g_priority = 0
-        self.g_round = 0
+        self.g_round =    0
         self.g_players =  []
         self.g_board =    []
         self.g_discard =  []
@@ -305,7 +305,6 @@ class Game:
             self.g_state += 1
             print("Game state :" + str(self.g_state))
             self.deal2()
-            # ~ logger.error("This shouldn't happen")
         if self.g_state == 2:
             self.g_state += 1
             print("Game state :" + str(self.g_state))
@@ -332,8 +331,8 @@ class Game:
     def show_bet(self, player):
         print("Your current bet: " + str(player._bet))
         
-    # ~ def evaluate_score(self, hand1, hand2):
-        # ~ return 0
+    def evaluate_score(self, hand1, hand2):
+        return 1
     
     def high_bet(self):
         b = 0
