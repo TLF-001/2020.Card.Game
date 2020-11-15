@@ -2,9 +2,13 @@ from card_game import Card
 from card_game import Deck
 from card_game import Player
 from card_game import Game
+from card_game import Evaluator
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+""" Card and Deck tests """
 
 # ~ card1 = Card("hearts", "2")
 # ~ card2 = Card("hearts", "K")
@@ -58,4 +62,32 @@ logging.basicConfig(level=logging.DEBUG)
 
 # ~ assert deck1.cfinder(d1) == False
 
-g1 = Game("Poker")
+
+
+""" Evaluator tests """
+
+hc1 = []
+c1 = Card("hearts", "2")
+c2 = Card("hearts", "K")
+c3 = Card("clubs", "2")
+c4 = Card("diamonds", "5")
+c5 = Card("diamonds", "4")
+c6 = Card("diamonds", "3")
+c7 = Card("diamonds", "2")
+c8 = Card("diamonds", "A")
+hc1.append(c1)
+hc1.append(c2)
+hc1.append(c3)
+hc1.append(c4)
+hc1.append(c5)
+hc1.append(c6)
+hc1.append(c7)
+hc1.append(c8)
+print("Cards: " + str(hc1))
+hc1.sort(key=lambda x: x._value)
+print("Cards: " + str(hc1))
+
+e1 = Evaluator(hc1)
+print(e1)
+
+# g1 = Game("Poker")
