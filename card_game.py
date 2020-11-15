@@ -11,8 +11,9 @@ class Card:
     def __init__(self, suit,  number):
         self._suit =   suit
         self._number = number
-        self._value =  0
-                    
+        card_order_dict = {"2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "T":10,"J":11, "Q":12, "K":13, "A":14}
+        self._value =  card_order_dict.get(number)
+                            
     def __repr__(self):
         return self._number + " of " + self._suit + " (" + str(self._value) + ")"
     
@@ -298,6 +299,7 @@ class Game:
     
     def cbetting1(self):
         """ first computer betting round """
+        # Not finished. May move some of this code to a separate method
         logger.info("Computer player betted, called or raised")
         self.g_priority -= 1
         
@@ -330,9 +332,6 @@ class Game:
     
     def show_bet(self, player):
         print("Your current bet: " + str(player._bet))
-        
-    def evaluate_score(self, hand1, hand2):
-        return 1
     
     def high_bet(self):
         b = 0
@@ -374,8 +373,356 @@ class Game:
         
         logger.info("Player raised")
         
-    # ~ def gameloop(self):
-        # ~ self.g_state = 3
-        # ~ active = True
+    def card_value_finder(self, value):
+        p_hand = self.g_board + self.g_players[0]._hand
+        for card in p_hand:
+            if card._value == value:
+                return True
+        return False
 
+
+
+    # def gameloop(self):
+    #     self.g_state = 3
+    #     active = True
+
+
+class Evaluator:
+    """
+    The Evaluator class is used to evaluate cards and return the best possible hand.
+    """
+    def __init__(self, cards):
+        self.cards = cards
+        self.hand_value = 0
+        self.find_hand()
+        
+    def __repr__(self):
+        return str(self.hand_value)
+    
+    def find_hand(self):
+        if self.r_flush():
+            self.hand_value = 10
+            # print("10")
+        elif self.s_flush():
+            self.hand_value = 9
+            # print("9")
+        elif self.kind4():
+            self.hand_value = 8
+            # print("8")
+        elif self.full_house():
+            self.hand_value = 7
+            # print("7")
+        elif self.flush():
+            self.hand_value = 6
+            # print("6")
+        elif self.straight():
+            self.hand_value = 5
+            # print("5")
+        elif self.kind3():
+            self.hand_value = 4
+            # print("4")
+        elif self.two_pair():
+            self.hand_value = 3
+            # print("3")
+        elif self.pair():
+            self.hand_value = 2
+            # print("2")
+        elif self.high_card():
+            self.hand_value = 1
+            # print("1")
+
+    def r_flush(self):
+        c1 = self.cards[:]
+        f1 = False
+        h_suit = 0
+        c_suit = 0
+        d_suit = 0
+        s_suit = 0
+                
+        for card in c1:
+            if card._suit == "hearts":
+                h_suit += 1
+            if card._suit == "clubs":
+                c_suit += 1
+            if card._suit == "diamonds":
+                d_suit += 1
+            if card._suit == "spades":
+                s_suit += 1
+        
+        if h_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "hearts":
+                    del card
+        elif c_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "clubs":
+                    del card
+        elif d_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "diamonds":
+                    del card
+        elif s_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "spades":
+                    del card
+        
+        if f1:
+            for card in c1:
+                if card._value < 10:
+                    del card
+            c1.sort(key=lambda x: x._value, reverse=False)
+            v1 = c1[0]._value + 1
+            s1 = 1
+            v2 = 2
+            s2 = 1
+
+            for card in c1:
+                if card._value == v1:
+                    s1 += 1
+                    v1 = card._value + 1
+                else:
+                    v1 = card._value + 1
+        
+            if s1 > 4:
+                return True
+            elif s1 == 4:
+                if c1[-1]._value == 14:
+                    for card in c1:
+                        if card._value == v2:
+                            s2 += 1
+                            v2 = card._value + 1
+                    if s2 == 5:
+                        return True
+                return False
+            else:
+                return False
+            
+        else:
+            return False
+        
+    def s_flush(self):
+        c1 = self.cards[:]
+        f1 = False
+        h_suit = 0
+        c_suit = 0
+        d_suit = 0
+        s_suit = 0
+                
+        for card in c1:
+            if card._suit == "hearts":
+                h_suit += 1
+            if card._suit == "clubs":
+                c_suit += 1
+            if card._suit == "diamonds":
+                d_suit += 1
+            if card._suit == "spades":
+                s_suit += 1
+        
+        if h_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "hearts":
+                    del card
+        elif c_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "clubs":
+                    del card
+        elif d_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "diamonds":
+                    del card
+        elif s_suit > 4:
+            f1 = True
+            for card in c1:
+                if card._suit != "spades":
+                    del card
+        
+        if f1:
+            c1.sort(key=lambda x: x._value, reverse=False)
+            v1 = c1[0]._value + 1
+            s1 = 1
+            v2 = 2
+            s2 = 1
+
+            for card in c1:
+                if card._value == v1:
+                    s1 += 1
+                    v1 = card._value + 1
+                else:
+                    v1 = card._value + 1
+        
+            if s1 > 4:
+                return True
+            elif s1 == 4:
+                if c1[-1]._value == 14:
+                    for card in c1:
+                        if card._value == v2:
+                            s2 += 1
+                            v2 = card._value + 1
+                    if s2 == 5:
+                        return True
+                return False
+            else:
+                return False
+            
+        else:
+            return False
+
+    def kind4(self):
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=False)
+        v1 = c1[0]._value
+        k1 = 0
+
+        for card in c1:
+            if card._value == v1:
+                k1 += 1
+                if k1 > 3:
+                    return True
+            else:
+                v1 = card._value
+                k1 = 1
+        return False
+
+    
+    def full_house(self):
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=False)
+        v1 = c1[0]._value
+        k1 = 0
+        k2 = 0
+        k3 = 0
+
+        for card in c1:
+            if card._value == v1:
+                k1 += 1
+                if k1 == 2:
+                    k2 += 1
+                if k1 == 3:
+                    k3 += 1
+                if k3 == 1:
+                    if k2 > 1:
+                        return True
+            else:
+                v1 = card._value
+                k1 = 1
+        return False
+
+    def flush(self):
+        c1 = self.cards[:]
+        h_suit = 0
+        c_suit = 0
+        d_suit = 0
+        s_suit = 0
+        
+        for card in c1:
+            if card._suit == "hearts":
+                h_suit += 1
+            if card._suit == "clubs":
+                c_suit += 1
+            if card._suit == "diamonds":
+                d_suit += 1
+            if card._suit == "spades":
+                s_suit += 1
+        
+        if h_suit > 4:
+            return True
+        elif c_suit > 4:
+            return True
+        elif d_suit > 4:
+            return True
+        elif s_suit > 4:
+            return True
+        else:
+            return False
+
+        
+    def straight(self):
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=False)
+        v1 = c1[0]._value + 1
+        s1 = 1
+        v2 = 2
+        s2 = 1
+
+        for card in c1:
+            if card._value == v1:
+                s1 += 1
+                v1 = card._value + 1
+            else:
+                v1 = card._value + 1
+        
+        if s1 > 4:
+            return True
+        elif s1 == 4:
+            if c1[-1]._value == 14:
+                for card in c1:
+                    if card._value == v2:
+                        s2 += 1
+                        v2 = card._value + 1
+                if s2 == 5:
+                    return True
+            return False
+        else:
+            return False
+
+    def kind3(self):
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=False)
+        v1 = c1[0]._value
+        k1 = 0
+        
+        for card in c1:
+            if card._value == v1:
+                k1 += 1
+                if k1 > 2:
+                    return True
+            else:
+                v1 = card._value
+                k1 = 1
+        return False
+
+    def two_pair(self):
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=False)
+        v1 = c1[0]._value
+        k1 = 0
+        k2 = 0
+
+        for card in c1:
+            if card._value == v1:
+                k1 += 1
+                if k1 == 2:
+                    k2 += 1
+                if k2 == 2:
+                    return True
+            else:
+                v1 = card._value
+                k1 = 1
+        return False
+
+    def pair(self):
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=False)
+        v1 = c1[0]._value
+        k1 = 0
+
+        for card in c1:
+            if card._value == v1:
+                k1 += 1
+                if k1 > 1:
+                    return True
+            else:
+                v1 = card._value
+                k1 = 1
+        return False
+        
+    def high_card(self):
+        return True
 
