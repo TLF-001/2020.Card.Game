@@ -11,7 +11,7 @@ class Card:
     def __init__(self, suit,  number):
         self._suit =   suit
         self._number = number
-        card_order_dict = {"2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "T":10,"J":11, "Q":12, "K":13, "A":14}
+        card_order_dict = {"2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10,"J":11, "Q":12, "K":13, "A":14}
         self._value =  card_order_dict.get(number)
                             
     def __repr__(self):
@@ -403,32 +403,32 @@ class Evaluator:
         if self.r_flush():
             self.hand_value = 10
             # print("10")
-        elif self.s_flush():
-            self.hand_value = 9
+        elif self.s_flush() != 0:
+            self.hand_value = self.s_flush()
             # print("9")
-        elif self.kind4():
-            self.hand_value = 8
+        elif self.kind4() != 0:
+            self.hand_value = self.kind4()
             # print("8")
-        elif self.full_house():
-            self.hand_value = 7
+        elif self.full_house() != 0:
+            self.hand_value = self.full_house()
             # print("7")
-        elif self.flush():
-            self.hand_value = 6
+        elif self.flush() != 0:
+            self.hand_value = self.flush()
             # print("6")
-        elif self.straight():
-            self.hand_value = 5
+        elif self.straight() != 0:
+            self.hand_value = self.straight()
             # print("5")
-        elif self.kind3():
-            self.hand_value = 4
+        elif self.kind3() != 0 :
+            self.hand_value = self.kind3()
             # print("4")
-        elif self.two_pair():
-            self.hand_value = 3
+        elif self.two_pair() != 0:
+            self.hand_value = self.two_pair()
             # print("3")
-        elif self.pair():
-            self.hand_value = 2
+        elif self.pair() != 0:
+            self.hand_value = self.pair()
             # print("2")
-        elif self.high_card():
-            self.hand_value = 1
+        elif self.high_card() != 0:
+            self.hand_value = self.high_card()
             # print("1")
 
     def r_flush(self):
@@ -453,27 +453,27 @@ class Evaluator:
             f1 = True
             for card in c1:
                 if card._suit != "hearts":
-                    del card
+                    c1.remove(card)
         elif c_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit != "clubs":
-                    del card
+                    c1.remove(card)
         elif d_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit != "diamonds":
-                    del card
+                    c1.remove(card)
         elif s_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit != "spades":
-                    del card
+                    c1.remove(card)
         
         if f1:
             for card in c1:
                 if card._value < 10:
-                    del card
+                    c1.remove(card)
             c1.sort(key=lambda x: x._value, reverse=False)
             v1 = c1[0]._value + 1
             s1 = 1
@@ -526,22 +526,22 @@ class Evaluator:
             f1 = True
             for card in c1:
                 if card._suit != "hearts":
-                    del card
+                    c1.remove(card)
         elif c_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit != "clubs":
-                    del card
+                    c1.remove(card)
         elif d_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit != "diamonds":
-                    del card
+                    c1.remove(card)
         elif s_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit != "spades":
-                    del card
+                    c1.remove(card)
         
         if f1:
             c1.sort(key=lambda x: x._value, reverse=False)
@@ -576,50 +576,85 @@ class Evaluator:
 
     def kind4(self):
         c1 = self.cards[:]
-        c1.sort(key=lambda x: x._value, reverse=False)
+        c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
         k1 = 0
+        hv1 = 0
+        hv2 = 0
+        rv = 0
 
         for card in c1:
             if card._value == v1:
                 k1 += 1
                 if k1 > 3:
-                    return True
+                    hv1 = card._value
             else:
                 v1 = card._value
                 k1 = 1
-        return False
+        
+        if hv1 != 0:
+            for card in c1:
+                if card._value != hv1:
+                    if card._value > hv2:
+                        hv2 = card._value
+            rv = 8 +hv1/100 + hv2/10000
+            return rv
+        else:
+            return 0
 
     
     def full_house(self):
         c1 = self.cards[:]
-        c1.sort(key=lambda x: x._value, reverse=False)
+        c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
-        k1 = 0
-        k2 = 0
-        k3 = 0
+        h1 = 0
+        hv1 = 0
+        hv2 = 0
+        rv = 0
 
         for card in c1:
             if card._value == v1:
-                k1 += 1
-                if k1 == 2:
-                    k2 += 1
-                if k1 == 3:
-                    k3 += 1
-                if k3 == 1:
-                    if k2 > 1:
-                        return True
+                h1 += 1
+                if h1 == 3:
+                    if hv1 < card._value:
+                        hv1 = card._value
             else:
                 v1 = card._value
-                k1 = 1
-        return False
+                h1 = 1
+        
+        if hv1 != 0:
+            v1 = c1[0]._value
+            h1 = 0
+            for card in c1:
+                if card.value != hv1:
+                    if card._value == v1:
+                        h1 += 1
+                        if h1 == 2:
+                            if hv2 < card._value:
+                                hv2 = card._value
+                    else:
+                        v1 = card._value
+                        h1 = 1
+            if hv2 != 0:
+                rv = 7 + hv1/100 + hv2/10000
+                return rv
+        else:
+            return 0
 
     def flush(self):
         c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=True)
         h_suit = 0
         c_suit = 0
         d_suit = 0
         s_suit = 0
+        f1 = 0
+        hv1 = 0
+        hv2 = 0
+        hv3 = 0
+        hv4 = 0
+        hv5 = 0
+        rv = 0
         
         for card in c1:
             if card._suit == "hearts":
@@ -632,97 +667,213 @@ class Evaluator:
                 s_suit += 1
         
         if h_suit > 4:
-            return True
+            for card in c1:
+                if card._suit == "hearts":
+                    f1 += 1
+                    if f1 == 1:
+                        hv1 = card._value
+                    if f1 == 2:
+                        hv2 = card._value
+                    if f1 == 3:
+                        hv3 = card._value
+                    if f1 == 4:
+                        hv4 = card._value
+                    if f1 == 5:
+                        hv5 = card._value
+            rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+            return rv
         elif c_suit > 4:
-            return True
+            for card in c1:
+                if card._suit == "clubs":
+                    f1 += 1
+                    if f1 == 1:
+                        hv1 = card._value
+                    if f1 == 2:
+                        hv2 = card._value
+                    if f1 == 3:
+                        hv3 = card._value
+                    if f1 == 4:
+                        hv4 = card._value
+                    if f1 == 5:
+                        hv5 = card._value
+            rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+            return rv
         elif d_suit > 4:
-            return True
+            for card in c1:
+                if card._suit == "diamonds":
+                    f1 += 1
+                    if f1 == 1:
+                        hv1 = card._value
+                    if f1 == 2:
+                        hv2 = card._value
+                    if f1 == 3:
+                        hv3 = card._value
+                    if f1 == 4:
+                        hv4 = card._value
+                    if f1 == 5:
+                        hv5 = card._value
+            rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+            return rv
         elif s_suit > 4:
-            return True
+            for card in c1:
+                if card._suit == "spades":
+                    f1 += 1
+                    if f1 == 1:
+                        hv1 = card._value
+                    if f1 == 2:
+                        hv2 = card._value
+                    if f1 == 3:
+                        hv3 = card._value
+                    if f1 == 4:
+                        hv4 = card._value
+                    if f1 == 5:
+                        hv5 = card._value
+            rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+            return rv
         else:
-            return False
+            return 0
 
         
     def straight(self):
         c1 = self.cards[:]
         c1.sort(key=lambda x: x._value, reverse=False)
-        v1 = c1[0]._value + 1
-        s1 = 1
-        v2 = 2
-        s2 = 1
+        v1 = c1[0]._value
+        s1 = 0
+        hv = 0
+        rv = 0
 
         for card in c1:
             if card._value == v1:
                 s1 += 1
+                if s1 > 4:
+                    hv = card._value
                 v1 = card._value + 1
             else:
                 v1 = card._value + 1
+                s1 = 1
+        
+        if c1[-1]._value == 14:
+            if s1 < 5:
+                s1 = 1
+                v1 = 2
+                for card in c1:
+                    if card._value == v1:
+                        s1 += 1
+                        if s1 > 4:
+                            hv = card._value
+                        v1 = card._value +1
+                    else:
+                        return 0
         
         if s1 > 4:
-            return True
-        elif s1 == 4:
-            if c1[-1]._value == 14:
-                for card in c1:
-                    if card._value == v2:
-                        s2 += 1
-                        v2 = card._value + 1
-                if s2 == 5:
-                    return True
-            return False
+            rv = 5 +hv/100
+            return rv
         else:
-            return False
+            return 0
 
     def kind3(self):
         c1 = self.cards[:]
-        c1.sort(key=lambda x: x._value, reverse=False)
+        c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
         k1 = 0
-        
+        hv1 = 0
+        hv2 = 0
+        hv3 = 0
+        rv = 0
+
         for card in c1:
             if card._value == v1:
                 k1 += 1
-                if k1 > 2:
-                    return True
+                if k1 == 3:
+                    hv1 = card._value
             else:
                 v1 = card._value
                 k1 = 1
-        return False
+        
+        if hv1 != 0:
+            for card in c1:
+                if card._value != hv1:
+                    if hv2 == 0:
+                        hv2 = card._value
+                    elif hv3 == 0:
+                        hv3 = card._value
+            rv = 4 + hv1/100 + hv2/10000 + hv3/1000000
+            return rv
+        else:
+            return 4
 
     def two_pair(self):
         c1 = self.cards[:]
-        c1.sort(key=lambda x: x._value, reverse=False)
+        c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
-        k1 = 0
-        k2 = 0
+        p1 = 0
+        hv1 = 0
+        hv2 = 0
+        hv3 = 0
+        rv = 0
 
         for card in c1:
             if card._value == v1:
-                k1 += 1
-                if k1 == 2:
-                    k2 += 1
-                if k2 == 2:
-                    return True
+                p1 += 1
+                if p1 == 2:
+                    if hv1 == 0:
+                        hv1 = card._value
+                    elif hv2 == 0:
+                        hv2 = card._value
+                    p1 = 0
             else:
                 v1 = card._value
-                k1 = 1
-        return False
+                p1 = 1
+        
+        if hv2 != 0:
+            for card in c1:
+                if card._value != hv1:
+                    if card._value != hv2:
+                        if hv3 < card._value:
+                            hv3 = card._value
+            rv = 3 + hv1/100 + hv2/10000 + hv3/1000000
+            return rv
+        else:
+            return 0
 
     def pair(self):
         c1 = self.cards[:]
-        c1.sort(key=lambda x: x._value, reverse=False)
+        c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
-        k1 = 0
+        p1 = 0
+        hv1 = 0
+        hv2 = 0
+        hv3 = 0
+        hv4 = 0
+        rv = 0
 
         for card in c1:
             if card._value == v1:
-                k1 += 1
-                if k1 > 1:
-                    return True
+                p1 += 1
+                if p1 == 2:
+                    hv1 = card._value
             else:
                 v1 = card._value
-                k1 = 1
-        return False
+                p1 = 1
+        
+        if hv1 != 0:
+            for card in c1:
+                if card._value != hv1:
+                    if hv2 == 0:
+                        hv2 = card._value
+                    elif hv3 == 0:
+                        hv3 = card._value
+                    elif hv4 == 0:
+                        hv4 = card._value
+            rv = 2 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000
+            return rv
+        else:
+            return 0
         
     def high_card(self):
-        return True
-
+        c1 = self.cards[:]
+        c1.sort(key=lambda x: x._value, reverse=True)
+        hv = c1[0]._value
+        rv = 1 + hv/100
+        return rv
+    
