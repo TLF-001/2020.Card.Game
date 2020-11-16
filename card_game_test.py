@@ -66,7 +66,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 """ Evaluator tests """
 
-""" 3 of a kind test"""
+""" Test - 3 of a kind test"""
 # hc1 = []
 # c1 = Card("hearts", "2")
 # c2 = Card("hearts", "K")
@@ -89,7 +89,7 @@ logging.basicConfig(level=logging.DEBUG)
 # e1 = Evaluator(hc1)
 # print(e1)
 
-""" 4 of a kind test """
+""" Test - 4 of a kind test """
 # hc2 = []
 # c1 = Card("hearts", "2")
 # c2 = Card("spades", "2")
@@ -113,26 +113,175 @@ logging.basicConfig(level=logging.DEBUG)
 # print(e2)
 
 """ Test - Royal straight flush """
-hc3 = []
-c1 = Card("hearts", "9")
-c2 = Card("hearts", "K")
-c3 = Card("hearts", "Q")
-c4 = Card("hearts", "J")
-c5 = Card("hearts", "10")
-c6 = Card("spades", "5")
-c7 = Card("clubs", "8")
-hc3.append(c1)
-hc3.append(c2)
-hc3.append(c3)
-hc3.append(c4)
-hc3.append(c5)
-hc3.append(c6)
-hc3.append(c7)
+# hc3 = []
+# c1 = Card("hearts", "A")
+# c2 = Card("hearts", "K")
+# c3 = Card("hearts", "Q")
+# c4 = Card("hearts", "J")
+# c5 = Card("hearts", "10")
+# c6 = Card("spades", "5")
+# c7 = Card("clubs", "7")
+# hc3.append(c1)
+# hc3.append(c2)
+# hc3.append(c3)
+# hc3.append(c4)
+# hc3.append(c5)
+# hc3.append(c6)
+# hc3.append(c7)
 
-hc3.sort(key=lambda x: x._value)
-print("Cards: " + str(hc3))
+# hc3.sort(key=lambda x: x._value)
+# print("Cards: " + str(hc3))
 
-e3 = Evaluator(hc3)
-print(e3)
+# e3 = Evaluator(hc3)
+# print(e3)
 
-# g1 = Game("Poker")
+""" Test - Straight flush """
+# hc4 = []
+# c1 = Card("hearts", "9")
+# c2 = Card("hearts", "K")
+# c3 = Card("hearts", "Q")
+# c4 = Card("hearts", "J")
+# c5 = Card("hearts", "10")
+# c6 = Card("spades", "5")
+# c7 = Card("clubs", "7")
+# hc4.append(c1)
+# hc4.append(c2)
+# hc4.append(c3)
+# hc4.append(c4)
+# hc4.append(c5)
+# hc4.append(c6)
+# hc4.append(c7)
+
+# hc4.sort(key=lambda x: x._value)
+# print("Cards: " + str(hc4))
+
+# e4 = Evaluator(hc4)
+# print(e4)
+
+
+""" Test - Full House """
+# hc5 = []
+# c1 = Card("hearts", "A")
+# c2 = Card("hearts", "K")
+# c3 = Card("spades", "J")
+# c4 = Card("hearts", "J")
+# c5 = Card("spades", "A")
+# c6 = Card("spades", "5")
+# c7 = Card("clubs", "J")
+# hc5.append(c1)
+# hc5.append(c2)
+# hc5.append(c3)
+# hc5.append(c4)
+# hc5.append(c5)
+# hc5.append(c6)
+# hc5.append(c7)
+
+# hc5.sort(key=lambda x: x._value)
+# print("Cards: " + str(hc5))
+
+# e5 = Evaluator(hc5)
+# print(e5)
+
+""" Test - Two Pair """
+# hc6 = []
+# c1 = Card("hearts", "9")
+# c2 = Card("diamonds", "K")
+# c3 = Card("hearts", "Q")
+# c4 = Card("hearts", "J")
+# c5 = Card("hearts", "2")
+# c6 = Card("spades", "9")
+# c7 = Card("clubs", "Q")
+# hc6.append(c1)
+# hc6.append(c2)
+# hc6.append(c3)
+# hc6.append(c4)
+# hc6.append(c5)
+# hc6.append(c6)
+# hc6.append(c7)
+
+# hc6.sort(key=lambda x: x._value)
+# print("Cards: " + str(hc6))
+
+# e6 = Evaluator(hc6)
+# print(e6)
+
+# """ Test - Straight """
+# hc7 = []
+# c1 = Card("hearts", "A")
+# c2 = Card("diamonds", "2")
+# c3 = Card("hearts", "3")
+# c4 = Card("diamonds", "4")
+# c5 = Card("hearts", "5")
+# c6 = Card("spades", "8")
+# c7 = Card("clubs", "7")
+# hc7.append(c1)
+# hc7.append(c2)
+# hc7.append(c3)
+# hc7.append(c4)
+# hc7.append(c5)
+# hc7.append(c6)
+# hc7.append(c7)
+
+# hc7.sort(key=lambda x: x._value)
+# print("Cards: " + str(hc7))
+
+# e7 = Evaluator(hc7)
+# print(e7)
+
+
+""" Test - Pair """
+# hc8 = []
+# c1 = Card("hearts", "A")
+# c2 = Card("diamonds", "7")
+# c3 = Card("hearts", "3")
+# c4 = Card("diamonds", "4")
+# c5 = Card("hearts", "9")
+# c6 = Card("spades", "3")
+# c7 = Card("clubs", "K")
+# hc8.append(c1)
+# hc8.append(c2)
+# hc8.append(c3)
+# hc8.append(c4)
+# hc8.append(c5)
+# hc8.append(c6)
+# hc8.append(c7)
+
+# hc8.sort(key=lambda x: x._value)
+# print("Cards: " + str(hc8))
+
+# e8 = Evaluator(hc8)
+# print(e8)
+
+""" Test - High Card """
+
+# class Method:
+#     def __init__(self):
+#         self.method2()
+
+#     def method2(self):
+#         hc9 = []
+#         c1 = Card("hearts", "2")
+#         c2 = Card("diamonds", "7")
+#         c3 = Card("hearts", "3")
+#         c4 = Card("diamonds", "4")
+#         c5 = Card("hearts", "9")
+#         c6 = Card("spades", "J")
+#         c7 = Card("clubs", "K")
+#         hc9.append(c1)
+#         hc9.append(c2)
+#         hc9.append(c3)
+#         hc9.append(c4)
+#         hc9.append(c5)
+#         hc9.append(c6)
+#         hc9.append(c7)
+#         hc9.sort(key=lambda x: x._value)
+#         print("Cards: " + str(hc9))
+
+#         e9 = Evaluator(hc9)
+#         print(e9)
+
+# c1 = Method()
+
+
+
+g1 = Game("Poker")
