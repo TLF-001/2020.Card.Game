@@ -2,7 +2,7 @@ from card_game import Card
 from card_game import Deck
 from card_game import Player
 from card_game import Game
-from card_game import Evaluator
+# from card_game import Evaluator
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -281,6 +281,20 @@ logging.basicConfig(level=logging.DEBUG)
 #         print(e9)
 
 # c1 = Method()
+
+""" Testing 3 of a kind """
+# hc1 = []
+# hc1.append(Card("hearts", "2"))
+# hc1.append(Card("clubs", "2"))
+# hc1.append(Card("diamonds", "2"))
+# hc1.append(Card("hearts", "K"))
+# hc1.append(Card("diamonds", "5"))
+# hc1.append(Card("spades", "7"))
+# hc1.append(Card("clubs", "9"))
+# g1 = Game("Poker")
+
+# print(hc1)
+# print(g1.score_hand(hc1))
 
 
 

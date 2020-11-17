@@ -280,28 +280,34 @@ class Game:
         self.show_high_bet()
         self.show_bet(player)
         
-        gp = input("You can now fold (f), call/check (c) or raise (r)")
+        gp = input("You can now fold (f), call/check (c), raise (r) or quit game (q)")
         if gp == "f":
             self.fold(player)
-            # this should be changed/redone at some point
-            exit()
-        if gp == "c":
+        elif gp == "c":
             self.call(player)
-        if gp == "r":
+        elif gp == "r":
             hb = self.high_bet()
             cb = player._bet
             pc = hb - cb
             print("You call " + str(pc))
-            bet = int(input("how much do you want to bet?"))
-            self.bet(player, bet)
-        
+            while True:
+                try:
+                    bet = int(input("how much do you want to bet?"))
+                    break
+                except:
+                    print("Please give a number")
+            if isinstance(bet, int):
+                self.bet(player, int(bet))
+        elif gp == "q":
+            exit()
+
         if self.g_priority == 0:
             self.g_priority += 1
             self.computer_turn()
     
     def computer_turn(self):
         """ first computer betting round """
-        # Not finished. May move some of this code to a separate method
+        # unfinished
         logger.info("Computer player betted, called or raised")
         self.g_priority -= 1
         
@@ -329,120 +335,232 @@ class Game:
             self.new_round()
     
     def end_round(self):
-        print("Testing - Players: ")
+        print("End of Round Players: ")
         print(self.g_players)
-        bhp = self.find_best_hand()
+        
+        bhp = self.find_winner(self.g_players)
         pc = len(bhp)
+
         if pc == 1:
-            print("Testing End Round function 1")
-            logger.info(bhp[0]._name + " won the pot (" + str(self.g_pool) + ")")
+            print("[" + bhp[0]._name + "] won the pot (" + str(self.g_pool) + ")")
             bhp[0]._chips = bhp[0]._chips + self.g_pool
             self.g_pool = 0
-            self.player_cleanup(bhp[0])
+            # self.player_cleanup(bhp[0])
         
-        if len(bhp) > 1:
-            logger.error("Error: Function not coded")   # I should make this at some point
-
+        if len(bhp) == 2:
+            print("[" + bhp[0]._name + "] splits the pot (" + str(self.g_pool) + ") with [" + bhp[1]._name + "]")
+            bhp[0]._chips = bhp[0]._chips + self.g_pool/2
+            bhp[1]._chips = bhp[1]._chips + self.g_pool/2
+            self.g_pool = 0
+            
         for player in self.g_players:
             self.player_cleanup(player)
         
-        print("Testing End Round function 2")
+        print("End of Round Test 2")
             
+    def find_winner(self, players):
+        winners = []
+        best_hand_value = 0
+        for player in players:
+            a = self.best_hand(player)
+            if a > best_hand_value:
+                if best_hand_value != 0:
+                    del winners[0]
+                best_hand_value = a
+                winners.append(player)
+            elif self.best_hand(player) == best_hand_value:
+                winners.append(player)
+        self.show_winning_hand(best_hand_value)
+        return winners
+    
+    def show_winning_hand(self, best_hand_value):
+        if best_hand_value == 0:
+            logger.error("Error: No winning hand was found.")
+        if 1 <= best_hand_value < 2:
+            print("winning hand: High card")
+        if 2 <= best_hand_value < 3:
+            print("winning hand: Pair")
+        if 3 <= best_hand_value < 4:
+            print("winning hand: Two pair")
+        if 4 <= best_hand_value < 5:
+            print("winning hand: Three of a kind")
+        if 5 <= best_hand_value < 6:
+            print("winning hand: Straight")
+        if 6 <= best_hand_value < 7:
+            print("winning hand: Flush")
+        if 7 <= best_hand_value < 8:
+            print("winning hand: Full House")
+        if 8 <= best_hand_value < 9:
+            print("winning hand: Four of a kind")
+        if 9 <= best_hand_value < 10:
+            print("winning hand: Straight Flush")
+        if 10 <= best_hand_value:
+            print("winning hand: Royal Stright Flush")
 
-    def find_best_hand(self):
-        best_hand_players = []
-        hhv = 0
-        np = len(self.g_players)
-        gh1 = []
-        gh2 = []
-        gh3 = []
-        gh4 = []
-        gh5 = []
-        gh6 = []
+    def best_hand(self, player):
+        egh = self.make_end_hand(player)
+        rv = 0
 
-        hs1 = 0
-        hs2 = 0
-        hs3 = 0
-        hs4 = 0
-        hs5 = 0
-        hs6 = 0
-
-
-        if np > 0:
-            gh1.append(self.g_players[0]._hand)
-            gh1.append(self.g_board[:])
-        if np > 1:
-            gh2.append(self.g_players[1]._hand)
-            gh2.append(self.g_board[:])
-        if np > 2:
-            gh3.append(self.g_players[2]._hand)
-            gh3.append(self.g_board[:])
-        if np > 3:
-            gh4.append(self.g_players[3]._hand)
-            gh4.append(self.g_board[:])
-        if np > 4:
-            gh5.append(self.g_players[4]._hand)
-            gh5.append(self.g_board[:])
-        if np > 5:
-            gh6.append(self.g_players[5]._hand)
-            gh6.append(self.g_board[:])
-
-        if np > 0:
-            hs1 = Evaluator(gh1)
-        if np > 1:
-            hs2 = Evaluator(gh2)
-        if np > 2:
-            hs3 = Evaluator(gh3)
-        if np > 3:
-            hs4 = Evaluator(gh4)
-        if np > 4:
-            hs5 = Evaluator(gh5)
-        if np > 5:
-            hs6 = Evaluator(gh6)
+        if self.r_flush(egh) != 0:
+            rv = self.r_flush(egh)
+        elif self.s_flush(egh) != 0:
+            rv = self.s_flush(egh)
+        elif self.kind4(egh) != 0:
+            rv = self.kind4(egh)
+        elif self.full_house(egh) != 0:
+            rv = self.full_house(egh)
+        elif self.flush(egh) != 0:
+            rv = self.flush(egh)
+        elif self.straight(egh) != 0:
+            rv = self.straight(egh)
+        elif self.kind3(egh) != 0:
+            rv = self.kind3(egh)
+        elif self.two_pair(egh) != 0:
+            rv = self.two_pair(egh)
+        elif self.pair(egh) != 0:
+            rv = self.pair(egh)
+        elif self.high_card(egh) != 0:
+            rv = self.high_card(egh)
         
-        if np > 0:
-            hhv = hs1
-        if np > 1:
-            if hs2 > hhv:
-                hhv = hs2
-        if np > 2:
-            if hs3 > hhv:
-                hhv = hs3
-        if np > 3:
-            if hs4 > hhv:
-                hhv = hs4
-        if np > 4:
-            if hs4 > hhv:
-                hhv = hs4
-        if np > 5:
-            if hs5 > hhv:
-                hhv = hs5
+        return rv
+
+    def score_hand(self, cards):
+        egh = cards
+        rv = 0
+
+        if self.r_flush(egh) != 0:
+            print("Royal Straigh Flush")
+            rv = self.r_flush(egh)
+        elif self.s_flush(egh) != 0:
+            print("Straight Flush")
+            rv = self.s_flush(egh)
+        elif self.kind4(egh) != 0:
+            print("4 of a kind")
+            rv = self.kind4(egh)
+        elif self.full_house(egh) != 0:
+            print("Full House")
+            rv = self.full_house(egh)
+        elif self.flush(egh) != 0:
+            print("Flush")
+            rv = self.flush(egh)
+        elif self.straight(egh) != 0:
+            print("Straight")
+            rv = self.straight(egh)
+        elif self.kind3(egh) != 0:
+            print("3 of a kind")
+            rv = self.kind3(egh)
+        elif self.two_pair(egh) != 0:
+            print("Two pair")
+            rv = self.two_pair(egh)
+        elif self.pair(egh) != 0:
+            print("Pair")
+            rv = self.pair(egh)
+        elif self.high_card(egh) != 0:
+            print("High card")
+            rv = self.high_card(egh)
         
-        if np > 0:
-            if hs1 == hhv:
-                best_hand_players.append(self.g_players[0])
-        if np > 1:
-            if hs2 == hhv:
-                best_hand_players.append(self.g_players[1])
-        if np > 2:
-            if hs3 == hhv:
-                best_hand_players.append(self.g_players[2])
-        if np > 3:
-            if hs4 == hhv:
-                best_hand_players.append(self.g_players[3])
-        if np > 4:
-            if hs5 == hhv:
-                best_hand_players.append(self.g_players[4])
-        if np > 5:
-            if hs6 == hhv:
-                best_hand_players.append(self.g_players[5])
-        
-        return best_hand_players
+        return rv
+
+    def make_end_hand(self, player):
+        eh = []
+        for card in player._hand:
+            eh.append(card)
+        for card in self.g_board[:]:
+            eh.append(card)
+        eh.sort(key=lambda x: x._value, reverse=False)
+        # print(str(player._name) + "'s end hand: ")
+        # print(eh)
+        return eh
 
     def player_cleanup(self, player):
         player._bet       = 0
         player._hand      = []   # not sure if this actually empty the hand. I should test this. 
-        player.p_activity = False
+        # player.p_activity = False #  not sure if this should be implemented here or not.
+
+    # def find_best_hand(self):
+    #     best_hand_players = []
+    #     hhv = 0
+    #     np = len(self.g_players)
+    #     gh1 = []
+    #     gh2 = []
+    #     gh3 = []
+    #     gh4 = []
+    #     gh5 = []
+    #     gh6 = []
+
+    #     if np > 0:
+    #         gh1.append(self.g_players[0]._hand)
+    #         gh1.append(self.g_board[:])
+    #     if np > 1:
+    #         gh2.append(self.g_players[1]._hand)
+    #         gh2.append(self.g_board[:])
+    #     if np > 2:
+    #         gh3.append(self.g_players[2]._hand)
+    #         gh3.append(self.g_board[:])
+    #     if np > 3:
+    #         gh4.append(self.g_players[3]._hand)
+    #         gh4.append(self.g_board[:])
+    #     if np > 4:
+    #         gh5.append(self.g_players[4]._hand)
+    #         gh5.append(self.g_board[:])
+    #     if np > 5:
+    #         gh6.append(self.g_players[5]._hand)
+    #         gh6.append(self.g_board[:])
+        
+    #     print("Player 1: " + str(gh1))
+    #     print("Player 2: " + str(gh2))
+        
+    #     if np > 0:
+    #         hs1 = Evaluator(gh1)
+    #     if np > 1:
+    #         hs2 = Evaluator(gh2)
+    #     if np > 2:
+    #         hs3 = Evaluator(gh3)
+    #     if np > 3:
+    #         hs4 = Evaluator(gh4)
+    #     if np > 4:
+    #         hs5 = Evaluator(gh5)
+    #     if np > 5:
+    #         hs6 = Evaluator(gh6)
+        
+    #     if np > 0:
+    #         hhv = hs1
+    #     if np > 1:
+    #         if hs2 > hhv:
+    #             hhv = hs2
+    #     if np > 2:
+    #         if hs3 > hhv:
+    #             hhv = hs3
+    #     if np > 3:
+    #         if hs4 > hhv:
+    #             hhv = hs4
+    #     if np > 4:
+    #         if hs4 > hhv:
+    #             hhv = hs4
+    #     if np > 5:
+    #         if hs5 > hhv:
+    #             hhv = hs5
+        
+    #     if np > 0:
+    #         if hs1 == hhv:
+    #             best_hand_players.append(self.g_players[0])
+    #     if np > 1:
+    #         if hs2 == hhv:
+    #             best_hand_players.append(self.g_players[1])
+    #     if np > 2:
+    #         if hs3 == hhv:
+    #             best_hand_players.append(self.g_players[2])
+    #     if np > 3:
+    #         if hs4 == hhv:
+    #             best_hand_players.append(self.g_players[3])
+    #     if np > 4:
+    #         if hs5 == hhv:
+    #             best_hand_players.append(self.g_players[4])
+    #     if np > 5:
+    #         if hs6 == hhv:
+    #             best_hand_players.append(self.g_players[5])
+    #     print(best_hand_players)
+    #     return best_hand_players
 
     def show_table(self):
         print("Cards on table: " + str(self.g_board))
@@ -495,69 +613,15 @@ class Game:
         
         logger.info("Player raised")
         
-    def card_value_finder(self, value):
-        p_hand = self.g_board + self.g_players[0]._hand
-        for card in p_hand:
-            if card._value == value:
-                return True
-        return False
+    # def card_value_finder(self, value):
+    #     p_hand = self.g_board + self.g_players[0]._hand
+    #     for card in p_hand:
+    #         if card._value == value:
+    #             return True
+    #     return False
 
-
-
-    # def gameloop(self):
-    #     self.g_state = 3
-    #     active = True
-
-
-class Evaluator:
-    """
-    The Evaluator class is used to evaluate cards and return the best possible hand.
-    """
-    # I think I still need to change some of the return values for each hand. 
-    # Since numbers over 10 doesn't divide by 10 evenly, there may be some edge cases where hand values don't compare correctly. 
-
-    def __init__(self, card_list):
-        self.cards = card_list
-        self.hand_value = 0
-        self.find_hand()
-        
-    def __repr__(self):
-        return str(self.hand_value)
-    
-    def find_hand(self):
-        if self.r_flush() != 0:
-            self.hand_value = self.r_flush()
-            # print("10")
-        elif self.s_flush() != 0:
-            self.hand_value = self.s_flush()
-            # print("9")
-        elif self.kind4() != 0:
-            self.hand_value = self.kind4()
-            # print("8")
-        elif self.full_house() != 0:
-            self.hand_value = self.full_house()
-            # print("7")
-        elif self.flush() != 0:
-            self.hand_value = self.flush()
-            # print("6")
-        elif self.straight() != 0:
-            self.hand_value = self.straight()
-            # print("5")
-        elif self.kind3() != 0 :
-            self.hand_value = self.kind3()
-            # print("4")
-        elif self.two_pair() != 0:
-            self.hand_value = self.two_pair()
-            # print("3")
-        elif self.pair() != 0:
-            self.hand_value = self.pair()
-            # print("2")
-        elif self.high_card() != 0:
-            self.hand_value = self.high_card()
-            # print("1")
-
-    def r_flush(self):
-        c1 = self.cards[:]
+    def r_flush(self, hand):
+        c1 = hand
         f1 = False
         h_suit = 0
         c_suit = 0
@@ -569,7 +633,7 @@ class Evaluator:
         rv = 0
         t1 = []
         t2 = []
-                
+        
         for card in c1:
             if card._suit == "hearts":
                 h_suit += 1
@@ -585,36 +649,26 @@ class Evaluator:
             for card in c1:
                 if card._suit == "hearts":
                     t1.append(card)
-                # if card._suit != "hearts":
-                #     c1.remove(card)
         elif c_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit == "clubs":
                     t1.append(card)
-                # if card._suit != "clubs":
-                #     c1.remove(card)
         elif d_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit == "diamonds":
                     t1.append(card)
-                # if card._suit != "diamonds":
-                #     c1.remove(card)
         elif s_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit == "spades":
                     t1.append(card)
-                # if card._suit != "spades":
-                #     c1.remove(card)
         
         if f1:
             for card in t1:
                 if card._value > 9:
                     t2.append(card)
-                # if card._value < 10:
-                #     c1.remove(card)
             
             v1 = c1[0]._value
 
@@ -631,8 +685,8 @@ class Evaluator:
         
         return 0
         
-    def s_flush(self):
-        c1 = self.cards[:]
+    def s_flush(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=False)
         t1 = []
         f1 = False
@@ -660,29 +714,21 @@ class Evaluator:
             for card in c1:
                 if card._suit == "hearts":
                     t1.append(card)
-                # if card._suit != "hearts":
-                #     c1.remove(card)
         elif c_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit == "clubs":
                     t1.append(card)
-                # if card._suit != "clubs":
-                #     c1.remove(card)
         elif d_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit == "diamonds":
                     t1.append(card)
-                # if card._suit != "diamonds":
-                #     c1.remove(card)
         elif s_suit > 4:
             f1 = True
             for card in c1:
                 if card._suit == "spades":
                     t1.append(card)
-                # if card._suit != "spades":
-                #     c1.remove(card)
         
         if f1:
             v1 = t1[0]._value + 1
@@ -702,8 +748,8 @@ class Evaluator:
         else:
             return 0
 
-    def kind4(self):
-        c1 = self.cards[:]
+    def kind4(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
         k1 = 0
@@ -725,20 +771,20 @@ class Evaluator:
                 if card._value != hv1:
                     if card._value > hv2:
                         hv2 = card._value
-            rv = 8 +hv1/100 + hv2/10000
+            rv = 8 + hv1/100 + hv2/10000
             return rv
         else:
             return 0
 
     
-    def full_house(self):
-        c1 = self.cards[:]
+    def full_house(self, hand):
+        c1  = hand
         c1.sort(key=lambda x: x._value, reverse=True)
-        v1 = c1[0]._value
-        h1 = 0
+        v1  = c1[0]._value
+        h1  = 0
         hv1 = 0
         hv2 = 0
-        rv = 0
+        rv  = 0
 
         for card in c1:
             if card._value == v1:
@@ -749,6 +795,7 @@ class Evaluator:
             else:
                 v1 = card._value
                 h1 = 1
+
         if hv1 != 0:
             v1 = c1[0]._value
             h1 = 0
@@ -762,14 +809,14 @@ class Evaluator:
                     else:
                         v1 = card._value
                         h1 = 1
-            if hv2 != 0:
-                rv = 7 + hv1/100 + hv2/10000
-                return rv
+        if hv2 != 0:
+            rv = 7 + hv1/100 + hv2/10000
+            return rv
         else:
             return 0
 
-    def flush(self):
-        c1 = self.cards[:]
+    def flush(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
         h_suit = 0
         c_suit = 0
@@ -860,9 +907,8 @@ class Evaluator:
         else:
             return 0
 
-        
-    def straight(self):
-        c1 = self.cards[:]
+    def straight(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=False)
         v1 = c1[0]._value
         s1 = 0
@@ -896,8 +942,8 @@ class Evaluator:
         else:
             return 0
 
-    def kind3(self):
-        c1 = self.cards[:]
+    def kind3(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
         k1 = 0
@@ -925,10 +971,10 @@ class Evaluator:
             rv = 4 + hv1/100 + hv2/10000 + hv3/1000000
             return rv
         else:
-            return 0
+            return rv
 
-    def two_pair(self):
-        c1 = self.cards[:]
+    def two_pair(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
         p1 = 0
@@ -961,8 +1007,8 @@ class Evaluator:
         else:
             return 0
 
-    def pair(self):
-        c1 = self.cards[:]
+    def pair(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
         v1 = c1[0]._value
         p1 = 0
@@ -995,10 +1041,509 @@ class Evaluator:
         else:
             return 0
         
-    def high_card(self):
-        c1 = self.cards[:]
+    def high_card(self, hand):
+        c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
         hv = c1[0]._value
         rv = 1 + hv/100
         return rv
+
+
+    # def gameloop(self):
+    #     self.g_state = 3
+    #     active = True
+
+
+# class Evaluator:
+#     """
+#     The Evaluator class is used to evaluate cards and return the best possible hand.
+#     """
+#     # I think I still need to change some of the return values for each hand. 
+#     # Since numbers over 10 doesn't divide by 10 evenly, there may be some edge cases where hand values don't compare correctly. 
+
+#     def __init__(self, card_list):
+#         self.e_cards = card_list
+#         self.hand_value = 0
+#         self.find_hand()
+        
+#     def __repr__(self):
+#         return str(self.hand_value)
+    
+#     def find_hand(self):
+#         if self.r_flush() != 0:
+#             self.hand_value = self.r_flush()
+#             # print("10")
+#         elif self.s_flush() != 0:
+#             self.hand_value = self.s_flush()
+#             # print("9")
+#         elif self.kind4() != 0:
+#             self.hand_value = self.kind4()
+#             # print("8")
+#         elif self.full_house() != 0:
+#             self.hand_value = self.full_house()
+#             # print("7")
+#         elif self.flush() != 0:
+#             self.hand_value = self.flush()
+#             # print("6")
+#         elif self.straight() != 0:
+#             self.hand_value = self.straight()
+#             # print("5")
+#         elif self.kind3() != 0 :
+#             self.hand_value = self.kind3()
+#             # print("4")
+#         elif self.two_pair() != 0:
+#             self.hand_value = self.two_pair()
+#             # print("3")
+#         elif self.pair() != 0:
+#             self.hand_value = self.pair()
+#             # print("2")
+#         elif self.high_card() != 0:
+#             self.hand_value = self.high_card()
+#             # print("1")
+
+    # def r_flush(self):
+    #     c1 = self.e_cards[:]
+    #     f1 = False
+    #     h_suit = 0
+    #     c_suit = 0
+    #     d_suit = 0
+    #     s_suit = 0
+    #     c1.sort(key=lambda x: x._value, reverse=False)
+    #     v1 = 0
+    #     s1 = 0
+    #     rv = 0
+    #     t1 = []
+    #     t2 = []
+                
+    #     for card in c1:
+    #         if card._suit == "hearts":
+    #             h_suit += 1
+    #         if card._suit == "clubs":
+    #             c_suit += 1
+    #         if card._suit == "diamonds":
+    #             d_suit += 1
+    #         if card._suit == "spades":
+    #             s_suit += 1
+        
+    #     if h_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "hearts":
+    #                 t1.append(card)
+    #             # if card._suit != "hearts":
+    #             #     c1.remove(card)
+    #     elif c_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "clubs":
+    #                 t1.append(card)
+    #             # if card._suit != "clubs":
+    #             #     c1.remove(card)
+    #     elif d_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "diamonds":
+    #                 t1.append(card)
+    #             # if card._suit != "diamonds":
+    #             #     c1.remove(card)
+    #     elif s_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "spades":
+    #                 t1.append(card)
+    #             # if card._suit != "spades":
+    #             #     c1.remove(card)
+        
+    #     if f1:
+    #         for card in t1:
+    #             if card._value > 9:
+    #                 t2.append(card)
+    #             # if card._value < 10:
+    #             #     c1.remove(card)
+            
+    #         v1 = c1[0]._value
+
+    #         for card in t2:
+    #             if card._value == v1:
+    #                 s1 += 1
+    #                 if s1 == 5:
+    #                     rv = 10
+    #                     return rv
+    #                 v1 = card._value + 1
+    #             else:
+    #                 v1 = card._value + 1
+    #                 s1 = 1
+        
+    #     return 0
+        
+    # def s_flush(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=False)
+    #     t1 = []
+    #     f1 = False
+    #     h_suit = 0
+    #     c_suit = 0
+    #     d_suit = 0
+    #     s_suit = 0
+    #     v1 = 0
+    #     s1 = 1
+    #     hv1 = 0
+    #     rv = 0
+                
+    #     for card in c1:
+    #         if card._suit == "hearts":
+    #             h_suit += 1
+    #         if card._suit == "clubs":
+    #             c_suit += 1
+    #         if card._suit == "diamonds":
+    #             d_suit += 1
+    #         if card._suit == "spades":
+    #             s_suit += 1
+        
+    #     if h_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "hearts":
+    #                 t1.append(card)
+    #             # if card._suit != "hearts":
+    #             #     c1.remove(card)
+    #     elif c_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "clubs":
+    #                 t1.append(card)
+    #             # if card._suit != "clubs":
+    #             #     c1.remove(card)
+    #     elif d_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "diamonds":
+    #                 t1.append(card)
+    #             # if card._suit != "diamonds":
+    #             #     c1.remove(card)
+    #     elif s_suit > 4:
+    #         f1 = True
+    #         for card in c1:
+    #             if card._suit == "spades":
+    #                 t1.append(card)
+    #             # if card._suit != "spades":
+    #             #     c1.remove(card)
+        
+    #     if f1:
+    #         v1 = t1[0]._value + 1
+    #         for card in t1:
+    #             if card._value == v1:
+    #                 s1 += 1
+    #                 if s1 > 4:
+    #                     hv1 = card._value
+    #                 v1 = card._value + 1
+    #             else:
+    #                 v1 = card._value + 1
+    #                 s1 = 1
+            
+    #     if hv1 != 0:
+    #         rv = 9 + hv1/100
+    #         return rv
+    #     else:
+    #         return 0
+
+    # def kind4(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     v1 = c1[0]._value
+    #     k1 = 0
+    #     hv1 = 0
+    #     hv2 = 0
+    #     rv = 0
+
+    #     for card in c1:
+    #         if card._value == v1:
+    #             k1 += 1
+    #             if k1 > 3:
+    #                 hv1 = card._value
+    #         else:
+    #             v1 = card._value
+    #             k1 = 1
+        
+    #     if hv1 != 0:
+    #         for card in c1:
+    #             if card._value != hv1:
+    #                 if card._value > hv2:
+    #                     hv2 = card._value
+    #         rv = 8 +hv1/100 + hv2/10000
+    #         return rv
+    #     else:
+    #         return 0
+
+    
+    # def full_house(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     v1 = c1[0]._value
+    #     h1 = 0
+    #     hv1 = 0
+    #     hv2 = 0
+    #     rv = 0
+
+    #     for card in c1:
+    #         if card._value == v1:
+    #             h1 += 1
+    #             if h1 == 3:
+    #                 if hv1 < card._value:
+    #                     hv1 = card._value
+    #         else:
+    #             v1 = card._value
+    #             h1 = 1
+    #     if hv1 != 0:
+    #         v1 = c1[0]._value
+    #         h1 = 0
+    #         for card in c1:
+    #             if card.value != hv1:
+    #                 if card._value == v1:
+    #                     h1 += 1
+    #                     if h1 == 2:
+    #                         if hv2 < card._value:
+    #                             hv2 = card._value
+    #                 else:
+    #                     v1 = card._value
+    #                     h1 = 1
+    #         if hv2 != 0:
+    #             rv = 7 + hv1/100 + hv2/10000
+    #             return rv
+    #     else:
+    #         return 0
+
+    # def flush(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     h_suit = 0
+    #     c_suit = 0
+    #     d_suit = 0
+    #     s_suit = 0
+    #     f1 = 0
+    #     hv1 = 0
+    #     hv2 = 0
+    #     hv3 = 0
+    #     hv4 = 0
+    #     hv5 = 0
+    #     rv = 0
+        
+    #     for card in c1:
+    #         if card._suit == "hearts":
+    #             h_suit += 1
+    #         if card._suit == "clubs":
+    #             c_suit += 1
+    #         if card._suit == "diamonds":
+    #             d_suit += 1
+    #         if card._suit == "spades":
+    #             s_suit += 1
+        
+    #     if h_suit > 4:
+    #         for card in c1:
+    #             if card._suit == "hearts":
+    #                 f1 += 1
+    #                 if f1 == 1:
+    #                     hv1 = card._value
+    #                 if f1 == 2:
+    #                     hv2 = card._value
+    #                 if f1 == 3:
+    #                     hv3 = card._value
+    #                 if f1 == 4:
+    #                     hv4 = card._value
+    #                 if f1 == 5:
+    #                     hv5 = card._value
+    #         rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+    #         return rv
+    #     elif c_suit > 4:
+    #         for card in c1:
+    #             if card._suit == "clubs":
+    #                 f1 += 1
+    #                 if f1 == 1:
+    #                     hv1 = card._value
+    #                 if f1 == 2:
+    #                     hv2 = card._value
+    #                 if f1 == 3:
+    #                     hv3 = card._value
+    #                 if f1 == 4:
+    #                     hv4 = card._value
+    #                 if f1 == 5:
+    #                     hv5 = card._value
+    #         rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+    #         return rv
+    #     elif d_suit > 4:
+    #         for card in c1:
+    #             if card._suit == "diamonds":
+    #                 f1 += 1
+    #                 if f1 == 1:
+    #                     hv1 = card._value
+    #                 if f1 == 2:
+    #                     hv2 = card._value
+    #                 if f1 == 3:
+    #                     hv3 = card._value
+    #                 if f1 == 4:
+    #                     hv4 = card._value
+    #                 if f1 == 5:
+    #                     hv5 = card._value
+    #         rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+    #         return rv
+    #     elif s_suit > 4:
+    #         for card in c1:
+    #             if card._suit == "spades":
+    #                 f1 += 1
+    #                 if f1 == 1:
+    #                     hv1 = card._value
+    #                 if f1 == 2:
+    #                     hv2 = card._value
+    #                 if f1 == 3:
+    #                     hv3 = card._value
+    #                 if f1 == 4:
+    #                     hv4 = card._value
+    #                 if f1 == 5:
+    #                     hv5 = card._value
+    #         rv = 6 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
+    #         return rv
+    #     else:
+    #         return 0
+
+        
+    # def straight(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=False)
+    #     v1 = c1[0]._value
+    #     s1 = 0
+    #     hv1 = 0
+    #     rv = 0
+
+    #     for card in c1:
+    #         if card._value == v1:
+    #             s1 += 1
+    #             if s1 > 4:
+    #                 hv1 = card._value
+    #             v1 = card._value + 1
+    #         else:
+    #             v1 = card._value + 1
+    #             s1 = 1
+        
+    #     if c1[-1]._value == 14:
+    #         if s1 < 5:
+    #             s1 = 1
+    #             v1 = 2
+    #             for card in c1:
+    #                 if card._value == v1:
+    #                     s1 += 1
+    #                     if s1 > 4:
+    #                         if hv1 < card._value:
+    #                             hv1 = card._value
+    #                     v1 = card._value +1
+    #     if hv1 != 0:
+    #         rv = 5 + hv1/100
+    #         return rv
+    #     else:
+    #         return 0
+
+    # def kind3(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     v1 = c1[0]._value
+    #     k1 = 0
+    #     hv1 = 0
+    #     hv2 = 0
+    #     hv3 = 0
+    #     rv = 0
+
+    #     for card in c1:
+    #         if card._value == v1:
+    #             k1 += 1
+    #             if k1 == 3:
+    #                 hv1 = card._value
+    #         else:
+    #             v1 = card._value
+    #             k1 = 1
+        
+    #     if hv1 != 0:
+    #         for card in c1:
+    #             if card._value != hv1:
+    #                 if hv2 == 0:
+    #                     hv2 = card._value
+    #                 elif hv3 == 0:
+    #                     hv3 = card._value
+    #         rv = 4 + hv1/100 + hv2/10000 + hv3/1000000
+    #         return rv
+    #     else:
+    #         return 0
+
+    # def two_pair(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     v1 = c1[0]._value
+    #     p1 = 0
+    #     hv1 = 0
+    #     hv2 = 0
+    #     hv3 = 0
+    #     rv = 0
+
+    #     for card in c1:
+    #         if card._value == v1:
+    #             p1 += 1
+    #             if p1 == 2:
+    #                 if hv1 == 0:
+    #                     hv1 = card._value
+    #                 elif hv2 == 0:
+    #                     hv2 = card._value
+    #                 p1 = 0
+    #         else:
+    #             v1 = card._value
+    #             p1 = 1
+        
+    #     if hv2 != 0:
+    #         for card in c1:
+    #             if card._value != hv1:
+    #                 if card._value != hv2:
+    #                     if hv3 < card._value:
+    #                         hv3 = card._value
+    #         rv = 3 + hv1/100 + hv2/10000 + hv3/1000000
+    #         return rv
+    #     else:
+    #         return 0
+
+    # def pair(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     v1 = c1[0]._value
+    #     p1 = 0
+    #     hv1 = 0
+    #     hv2 = 0
+    #     hv3 = 0
+    #     hv4 = 0
+    #     rv = 0
+
+    #     for card in c1:
+    #         if card._value == v1:
+    #             p1 += 1
+    #             if p1 == 2:
+    #                 hv1 = card._value
+    #         else:
+    #             v1 = card._value
+    #             p1 = 1
+        
+    #     if hv1 != 0:
+    #         for card in c1:
+    #             if card._value != hv1:
+    #                 if hv2 == 0:
+    #                     hv2 = card._value
+    #                 elif hv3 == 0:
+    #                     hv3 = card._value
+    #                 elif hv4 == 0:
+    #                     hv4 = card._value
+    #         rv = 2 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000
+    #         return rv
+    #     else:
+    #         return 0
+        
+    # def high_card(self):
+    #     c1 = self.e_cards[:]
+    #     c1.sort(key=lambda x: x._value, reverse=True)
+    #     hv = c1[0]._value
+    #     rv = 1 + hv/100
+    #     return rv
     
