@@ -13,9 +13,12 @@ class Card:
         self._number = number
         card_order_dict = {"2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":10,"J":11, "Q":12, "K":13, "A":14}
         self._value =  card_order_dict.get(number)
+        image_dict = {"hearts":"❤", "clubs":"♣", "diamonds":"♦", "spades":"♠"}
+        self._image = image_dict.get(suit)
                             
     def __repr__(self):
-        return self._number + " of " + self._suit + " (" + str(self._value) + ")"
+        # return self._number + " of " + self._suit + " (" + str(self._value) + ")"
+        return "[" + self._number + self._image + "]"
     
     @property
     def suit(self):
@@ -196,7 +199,6 @@ class Game:
         self.g_state = 0
         self.g_pool = 0
         del self.g_board[:]
-        # ~ del self.g_deck[:]
         for player in self.g_players:
             del player._hand[:]
             player._bet = 0
@@ -301,9 +303,12 @@ class Game:
         elif gp == "q":
             exit()
 
-        if self.g_priority == 0:
-            self.g_priority += 1
-            self.computer_turn()
+        if gp in ["f", "c", "r", "f"]:
+            if self.g_priority == 0:
+                self.g_priority += 1
+                self.computer_turn()
+        else:
+            self.player_turn()
     
     def computer_turn(self):
         """ first computer betting round """
