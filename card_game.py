@@ -159,6 +159,27 @@ class Game:
         # self.p_slot5    = []
         # self.p_slot6    = []
         self.main()
+
+    def show_game_state(self):
+        print("""
+        +------------------------+------------------------+
+        | P1: """ + self.g_players[0]._name + 
+            """               | P2: """ + self.g_players[1]._name + 
+                """    |
+        +------------------------+------------------------+
+        | Chips: $""" + str(self.g_players[0]._chips) + 
+            """"           | Chips: $""" + 
+                str(self.g_players[1]._chips) + """            |
+        +------------------------+------------------------+
+        | Pot: $""" + str(self.g_pool) + 
+            """ | Current bet: $""" + str(self.g_players[0]._bet) + 
+                """ | Highest bet: $""" + str(self.high_bet()) + """
+        +------------------------+------------------------+
+        | Cards in hand: """ + str(self.g_players[0]._hand) + """
+        +------------------------+------------------------+
+        | Cards on board: """ + str(self.g_board) + """
+        +------------------------+------------------------+
+        """)
         
     def main(self):
         """ sets up the main menu """
@@ -237,10 +258,10 @@ class Game:
         
         self.g_pool = 75
         
-        print(str(self.g_players[0]._name) + "'s bet: " + str(self.g_players[0]._bet))
-        print(str(self.g_players[0]._name) + "'s chips: " + str(self.g_players[0]._chips))
-        print(str(self.g_players[1]._name) + "'s bet: " + str(self.g_players[1]._bet))
-        print(str(self.g_players[1]._name) + "'s chips: " + str(self.g_players[1]._chips))
+        # print(str(self.g_players[0]._name) + "'s bet: " + str(self.g_players[0]._bet))
+        # print(str(self.g_players[0]._name) + "'s chips: " + str(self.g_players[0]._chips))
+        # print(str(self.g_players[1]._name) + "'s bet: " + str(self.g_players[1]._bet))
+        # print(str(self.g_players[1]._name) + "'s chips: " + str(self.g_players[1]._chips))
         
     def deal1(self):
         """ create a deck, shuffle it, and deal 2 cards to each player """
@@ -251,36 +272,37 @@ class Game:
             player.drawCard(self.g_deck)
             player.drawCard(self.g_deck)
         
-        self.g_players[self.g_priority].show_hand()
+        # self.g_players[self.g_priority].show_hand()
         
     def deal2(self):
         """ Flop - three community cards are flipped face up on the table """
         self.g_board.append(self.g_deck._cards.pop())
         self.g_board.append(self.g_deck._cards.pop())
         self.g_board.append(self.g_deck._cards.pop())
-        self.show_table()
+        # self.show_table()
         
         self.player_turn()
         
     def deal3(self):
         """ Turn - fourth community card is flipped face up on the table """
         self.g_board.append(self.g_deck._cards.pop())
-        self.show_table()
+        # self.show_table()
         
         self.player_turn()
     
     def deal4(self):
         """ River - fifth community card is flipped face up on the table """
         self.g_board.append(self.g_deck._cards.pop())
-        self.show_table()
+        # self.show_table()
         
         self.player_turn()
         
     def player_turn(self):
         """ player betting round """
         player = self.g_players[self.g_priority]
-        self.show_high_bet()
-        self.show_bet(player)
+        self.show_game_state()
+        # self.show_high_bet()
+        # self.show_bet(player)
         
         gp = input("You can now fold (f), call/check (c), raise (r) or quit game (q)")
         if gp == "f":
@@ -337,11 +359,12 @@ class Game:
             self.g_state += 1
             print("Game state :" + str(self.g_state))
             print("Round over")
+            input("Press enter to continue")
             self.new_round()
     
     def end_round(self):
-        print("End of Round Players: ")
-        print(self.g_players)
+        # print("End of Round Players: ")
+        # print(self.g_players)
         
         bhp = self.find_winner(self.g_players)
         pc = len(bhp)
@@ -382,25 +405,25 @@ class Game:
         if best_hand_value == 0:
             logger.error("Error: No winning hand was found.")
         if 1 <= best_hand_value < 2:
-            print("winning hand: High card")
+            print("Winning hand: High card")
         if 2 <= best_hand_value < 3:
-            print("winning hand: Pair")
+            print("Winning hand: Pair")
         if 3 <= best_hand_value < 4:
-            print("winning hand: Two pair")
+            print("Winning hand: Two pair")
         if 4 <= best_hand_value < 5:
-            print("winning hand: Three of a kind")
+            print("Winning hand: Three of a kind")
         if 5 <= best_hand_value < 6:
-            print("winning hand: Straight")
+            print("Winning hand: Straight")
         if 6 <= best_hand_value < 7:
-            print("winning hand: Flush")
+            print("Winning hand: Flush")
         if 7 <= best_hand_value < 8:
-            print("winning hand: Full House")
+            print("Winning hand: Full House")
         if 8 <= best_hand_value < 9:
-            print("winning hand: Four of a kind")
+            print("Winning hand: Four of a kind")
         if 9 <= best_hand_value < 10:
-            print("winning hand: Straight Flush")
+            print("Winning hand: Straight Flush")
         if 10 <= best_hand_value:
-            print("winning hand: Royal Stright Flush")
+            print("Winning hand: Royal Stright Flush")
 
     def best_hand(self, player):
         egh = self.make_end_hand(player)
@@ -1049,8 +1072,12 @@ class Game:
     def high_card(self, hand):
         c1 = hand
         c1.sort(key=lambda x: x._value, reverse=True)
-        hv = c1[0]._value
-        rv = 1 + hv/100
+        hv1 = c1[0]._value
+        hv2 = c1[1]._value
+        hv3 = c1[2]._value
+        hv4 = c1[3]._value
+        hv5 = c1[4]._value
+        rv = 1 + hv1/100 + hv2/10000 + hv3/1000000 + hv4/100000000 + hv5/10000000000
         return rv
 
 
