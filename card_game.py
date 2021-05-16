@@ -181,6 +181,17 @@ class Game:
         +------------------------+------------------------+
         """)
         
+    def show_hand_cards(self):
+        print("""
+        +------------------------+------------------------+
+        | Hand cards (""" + str(self.g_players[0]._name) + """): """ + str(self.g_players[0]._hand) + """
+        +------------------------+------------------------+
+        | Hand cards (""" + str(self.g_players[1]._name) + """): """ + str(self.g_players[1]._hand) + """
+        +------------------------+------------------------+
+        | Table cards: """ + str(self.g_board) + """
+        +------------------------+------------------------+
+        """)
+
     def main(self):
         """ sets up the main menu """
         gp = input("Do you want to play (y/n)? ")
@@ -355,9 +366,9 @@ class Game:
             print("Game state :" + str(self.g_state))
             self.deal4()
         if self.g_state == 4:
-            self.end_round()
             self.g_state += 1
             print("Game state :" + str(self.g_state))
+            self.end_round()
             print("Round over")
             input("Press enter to continue")
             self.new_round()
@@ -366,6 +377,8 @@ class Game:
         # print("End of Round Players: ")
         # print(self.g_players)
         
+        self.show_hand_cards()
+
         bhp = self.find_winner(self.g_players)
         pc = len(bhp)
 
