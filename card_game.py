@@ -314,8 +314,10 @@ class Game:
         self.show_game_state()
         # self.show_high_bet()
         # self.show_bet(player)
-        
-        gp = input("You can now fold (f), call/check (c), raise (r) or quit game (q)")
+        if player._chips < 50:
+            gp = input("You can now fold (f), call/check (c) or quit game (q)")
+        else:
+            gp = input("You can now fold (f), call/check (c), raise (r) or quit game (q)")
         if gp == "f":
             self.fold(player)
         elif gp == "c":
@@ -370,8 +372,11 @@ class Game:
             print("Game state :" + str(self.g_state))
             self.end_round()
             print("Round over")
-            input("Press enter to continue")
-            self.new_round()
+            gp = input("You can now quit (q) or Press enter to continue")
+            if gp == "q":
+                exit()
+            else:
+                self.new_round()
     
     def end_round(self):
         # print("End of Round Players: ")
